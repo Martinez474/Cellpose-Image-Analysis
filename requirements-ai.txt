@@ -1,0 +1,4 @@
+cellpose==4.2.1.1
+packaging>=24
+jupyterlab==4.6.3
+ipykernel==7.3.0

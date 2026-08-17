@@ -1,7 +1,6 @@
-package ai;
-
 import java.util.List;
 
+/** One prediction produced by the segmentation model. */
 public class Prediction {
     public String label;
     public double confidence;

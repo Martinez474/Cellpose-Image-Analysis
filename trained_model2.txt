@@ -1,0 +1,1 @@
+/home/mars/Documents/school/thesis/Cellpose-Image-Analysis/models/simple_scratch_model.pt

@@ -1,0 +1,11 @@
+/bin/
+*.class
+.venv/
+__pycache__/
+.pytest_cache/
+/prepared_dataset/
+/toy_training/
+/simple_dataset/
+/models/
+/trained_model.txt
+.ipynb_checkpoints/
