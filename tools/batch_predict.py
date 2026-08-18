@@ -18,6 +18,12 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from predict import run_model, write_predictions
 
+try:
+    import torch
+    USE_GPU = torch.cuda.is_available()
+except ImportError:
+    USE_GPU = False
+
 
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 
@@ -44,6 +50,8 @@ def main() -> int:
         if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
     )
     args.results_dir.mkdir(parents=True, exist_ok=True)
+    print("CUDA available; using GPU." if USE_GPU else
+          "CUDA unavailable; using CPU. The batch will be slower.", flush=True)
     summary: list[dict[str, object]] = []
 
     for index, image_path in enumerate(images, start=1):
@@ -56,7 +64,7 @@ def main() -> int:
             predictions = run_model(
                 image_path=image_path,
                 model_name="cpsam_v2",
-                use_gpu=True,
+                use_gpu=USE_GPU,
                 cellprob_threshold=0.0,
                 flow_threshold=0.4,
                 min_size=15,

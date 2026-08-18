@@ -12,6 +12,6 @@ export __GLX_VENDOR_LIBRARY_NAME=nvidia
 
 cd "${PROJECT_DIR}"
 echo "Checking CUDA device..."
-"${PYTHON}" -c 'import torch; assert torch.cuda.is_available(), "CUDA is unavailable"; print(torch.cuda.get_device_name(0))'
+"${PYTHON}" -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CUDA unavailable; continuing on CPU")'
 echo "Running batch predictions..."
 "${PYTHON}" tools/batch_predict.py "${INPUT_DIR}" "${RESULTS_DIR}"
