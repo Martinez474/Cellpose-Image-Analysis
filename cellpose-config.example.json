@@ -1,0 +1,5 @@
+{
+  "projectDirectory": ".",
+  "predictScript": "predict.py",
+  "predictionsPath": "predictions.json"
+}

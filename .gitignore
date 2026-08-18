@@ -8,4 +8,5 @@ __pycache__/
 /simple_dataset/
 /models/
 /trained_model.txt
+cellpose-config.json
 .ipynb_checkpoints/

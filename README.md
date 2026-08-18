@@ -20,6 +20,63 @@ that prediction coordinates correspond to the displayed image. Compile and run
 `src/Run_AI_Detection.java`, then wait for the completion message. Python output
 is also written to the ImageJ log.
 
+## Setup on a new computer
+
+The repository can live anywhere; it does not need to be inside ImageJ/Fiji's
+installation directory. The plugin locates the project by finding `predict.py`.
+
+1. Install Git, Python 3.11, and ImageJ or Fiji.
+2. Clone the repository and enter it:
+
+   ```bash
+   git clone <repository-url>
+   cd Cellpose-Image-Analysis
+   ```
+
+3. Create the virtual environment and install the common dependencies:
+
+   ```bash
+   python3 -m venv .venv       # Windows: py -3.11 -m venv .venv
+   source .venv/bin/activate   # Windows PowerShell: .venv\Scripts\Activate.ps1
+   python -m pip install --upgrade pip
+   python -m pip install -r requirements-ai.txt -r requirements-data.txt
+   ```
+
+   On Linux with an NVIDIA GPU, install the CUDA PyTorch packages instead of
+   the CPU packages:
+
+   ```bash
+   python -m pip install -r requirements-torch-cuda.txt
+   ```
+
+   On a Mac, or on a computer without NVIDIA CUDA, install the platform's
+   normal PyTorch build (`python -m pip install torch torchvision`). Cellpose
+   will use Apple MPS where supported and otherwise use the CPU.
+
+4. In ImageJ/Fiji, choose **Plugins → Compile and Run…**, select
+   `src/Run_AI_Detection.java`, and run it. Gson must be available to ImageJ;
+   copy `lib/gson-2.14.0.jar` into ImageJ/Fiji's `jars/` folder if the compiler
+   reports missing `com.google.gson` classes. The project itself does not need
+   to be copied into the ImageJ `plugins` folder.
+
+For a permanent menu entry, compile all Java files and place the resulting
+`.class` files in ImageJ/Fiji's `plugins` folder, and place Gson in `jars/`.
+Keep `cellpose-config.json` beside the installed plugin (or start ImageJ from
+the project directory) if the project is stored somewhere unrelated to the
+ImageJ installation.
+
+## Project paths and optional configuration
+
+The plugin automatically searches the current directory and its parent
+directories for `predict.py`, so the project can be moved to another computer.
+It also detects the platform-specific virtual-environment executable
+(`.venv/bin/python` on Linux/macOS and `.venv/Scripts/python.exe` on Windows).
+
+For a custom layout, copy `cellpose-config.example.json` to
+`cellpose-config.json` and edit its paths. Relative paths are resolved from the
+configuration file's directory; absolute paths are also allowed. The
+configuration file is ignored by Git so machine-specific paths stay local.
+
 ## Predict one image
 
 `predict.py` provides the Python-to-Java boundary:
@@ -43,20 +100,10 @@ Useful inference controls include `--gpu`, `--cellprob-threshold`,
 confidence for each individual object, so `confidence` is currently written as
 `1.0` and should not be interpreted as a probability.
 
-The repository pins pyenv Python 3.11.15 in `.python-version`. Create and
-activate its project-local virtual environment, then install the dependencies:
-
-```bash
-pyenv exec python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements-torch-cpu.txt
-python -m pip install -r requirements-data.txt -r requirements-ai.txt
-```
-
-The separate PyTorch step intentionally installs CPU-only wheels and avoids a
-large, unnecessary CUDA runtime download. A CUDA-specific PyTorch installation
-can replace it later on a compatible NVIDIA training machine.
+The repository includes `.python-version` for pyenv users, but pyenv is
+optional. The setup commands above create the project-local environment. Use
+`requirements-torch-cpu.txt` only when a Linux CPU-only installation is needed;
+use `requirements-torch-cuda.txt` for the supported NVIDIA CUDA installation.
 
 The custom thesis model will replace `cpsam_v2` after true instance masks have
 been exported, paired crops have been prepared, and training has been validated.

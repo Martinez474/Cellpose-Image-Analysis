@@ -17,12 +17,11 @@ import java.util.concurrent.TimeUnit;
 
 /** ImageJ entry point for running Cellpose and displaying prediction polygons. */
 public class Run_AI_Detection implements PlugIn {
-    private static final Path PROJECT_DIRECTORY = Paths.get(
-            "/home/mars/Documents/school/thesis/Cellpose-Image-Analysis"
-    );
-    private static final Path PYTHON_PATH = PROJECT_DIRECTORY.resolve(".venv/bin/python");
-    private static final Path PREDICT_SCRIPT = PROJECT_DIRECTORY.resolve("predict.py");
-    private static final Path PREDICTIONS_PATH = PROJECT_DIRECTORY.resolve("predictions.json");
+    private static final ProjectSettings SETTINGS = ProjectSettings.load();
+    private static final Path PROJECT_DIRECTORY = SETTINGS.projectDirectory;
+    private static final Path PYTHON_PATH = SETTINGS.pythonPath;
+    private static final Path PREDICT_SCRIPT = SETTINGS.predictScript;
+    private static final Path PREDICTIONS_PATH = SETTINGS.predictionsPath;
     private static final long PREDICTION_TIMEOUT_MINUTES = 30;
 
     @Override
