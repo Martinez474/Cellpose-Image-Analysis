@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /** ImageJ entry point for running Cellpose and displaying prediction polygons. */
@@ -107,10 +108,20 @@ public class Run_AI_Detection implements PlugIn {
                 PYTHON_PATH.toString(),
                 PREDICT_SCRIPT.toString(),
                 imagePath.toString(),
-                PREDICTIONS_PATH.toString()
+                PREDICTIONS_PATH.toString(),
+                "--model",
+                "cpsam_v2",
+                "--gpu"
         );
         processBuilder.directory(new File(PROJECT_DIRECTORY.toString()));
         processBuilder.redirectErrorStream(true);
+
+        // Request NVIDIA PRIME offload when ImageJ itself is running on the
+        // integrated GPU. This is the same setup used to launch Blender on
+        // this hybrid-graphics laptop.
+        Map<String, String> environment = processBuilder.environment();
+        environment.put("__NV_PRIME_RENDER_OFFLOAD", "1");
+        environment.put("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
 
         Process process = processBuilder.start();
         StringBuilder output = new StringBuilder();
