@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Callable, Iterable
 import cv2
@@ -210,6 +211,8 @@ def main(argv: list[str] | None = None) -> int:
         print("Prediction failed: --min-size cannot be negative.", file=sys.stderr)
         return 1
 
+    timer = 0.0
+    timer = time.time()
     try:
         predictions = run_model(
             image_path=image_path,
@@ -224,7 +227,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Prediction failed: {error}", file=sys.stderr)
         return 1
 
+    elapsed_seconds = time.time() - timer
     print(f"Wrote {len(predictions)} predictions to {output_path}")
+    print(f"Prediction time: {elapsed_seconds:.2f} seconds")
     return 0
 
 
