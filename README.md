@@ -42,7 +42,7 @@ installation directory. The plugin locates the project by finding `predict.py`.
    python -m pip install -r requirements-ai.txt -r requirements-data.txt
    ```
 
-   On Linux with an NVIDIA GPU, install the CUDA PyTorch packages instead of
+   With an NVIDIA GPU, install the CUDA PyTorch packages instead of
    the CPU packages:
 
    ```bash
@@ -50,8 +50,13 @@ installation directory. The plugin locates the project by finding `predict.py`.
    ```
 
    On a Mac, or on a computer without NVIDIA CUDA, install the platform's
-   normal PyTorch build (`python -m pip install torch torchvision`). Cellpose
-   will use Apple MPS where supported and otherwise use the CPU.
+   normal PyTorch build 
+
+   ```bash
+   python -m pip install torch torchvision
+   ```
+
+   Cellpose will use Apple MPS where supported and otherwise use the CPU.
 
 4. In ImageJ/Fiji, choose **Plugins → Compile and Run…**, select
    `src/Run_AI_Detection.java`, and run it. Gson must be available to ImageJ;
