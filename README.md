@@ -76,6 +76,8 @@ The plugin automatically searches the current directory and its parent
 directories for `predict.py`, so the project can be moved to another computer.
 It also detects the platform-specific virtual-environment executable
 (`.venv/bin/python` on Linux/macOS and `.venv/Scripts/python.exe` on Windows).
+If ImageJ was launched from a different location and automatic detection cannot
+find the project, the plugin asks you to select the project folder once.
 
 For a custom layout, copy `cellpose-config.example.json` to
 `cellpose-config.json` and edit its paths. Relative paths are resolved from the

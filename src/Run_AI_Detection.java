@@ -2,6 +2,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.PolygonRoi;
 import ij.io.FileInfo;
+import ij.io.DirectoryChooser;
 import ij.plugin.PlugIn;
 import ij.plugin.frame.RoiManager;
 
@@ -17,11 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 /** ImageJ entry point for running Cellpose and displaying prediction polygons. */
 public class Run_AI_Detection implements PlugIn {
-    private static final ProjectSettings SETTINGS = ProjectSettings.load();
-    private static final Path PROJECT_DIRECTORY = SETTINGS.projectDirectory;
-    private static final Path PYTHON_PATH = SETTINGS.pythonPath;
-    private static final Path PREDICT_SCRIPT = SETTINGS.predictScript;
-    private static final Path PREDICTIONS_PATH = SETTINGS.predictionsPath;
+    private static ProjectSettings settings;
     private static final long PREDICTION_TIMEOUT_MINUTES = 30;
 
     @Override
@@ -34,6 +31,7 @@ public class Run_AI_Detection implements PlugIn {
         }
 
         try {
+            ensureSettings();
             Path imagePath = getImagePath(image);
             validateAiFiles();
 
@@ -43,7 +41,7 @@ public class Run_AI_Detection implements PlugIn {
                 IJ.log("Cellpose output:\n" + predictionOutput);
             }
 
-            PredictionFile predictionFile = JsonLoader.load(PREDICTIONS_PATH.toString());
+            PredictionFile predictionFile = JsonLoader.load(settings.predictionsPath.toString());
             List<PolygonRoi> rois = RoiCreator.createRois(predictionFile.predictions);
 
             if (rois.isEmpty()) {
@@ -94,25 +92,39 @@ public class Run_AI_Detection implements PlugIn {
     }
 
     private void validateAiFiles() throws Exception {
-        if (!Files.isExecutable(PYTHON_PATH)) {
-            throw new Exception("Python environment was not found: " + PYTHON_PATH);
+        if (!Files.isExecutable(settings.pythonPath)) {
+            throw new Exception("Python environment was not found: " + settings.pythonPath);
         }
-        if (!Files.isRegularFile(PREDICT_SCRIPT)) {
-            throw new Exception("Prediction script was not found: " + PREDICT_SCRIPT);
+        if (!Files.isRegularFile(settings.predictScript)) {
+            throw new Exception("Prediction script was not found: " + settings.predictScript);
+        }
+    }
+
+    private void ensureSettings() throws Exception {
+        if (settings != null) return;
+        try {
+            settings = ProjectSettings.load();
+        } catch (IllegalStateException automaticDetectionError) {
+            DirectoryChooser chooser = new DirectoryChooser("Select Cellpose project folder");
+            String selected = chooser.getDirectory();
+            if (selected == null) {
+                throw automaticDetectionError;
+            }
+            settings = ProjectSettings.fromProject(Paths.get(selected));
         }
     }
 
     private String runPrediction(Path imagePath) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder(
-                PYTHON_PATH.toString(),
-                PREDICT_SCRIPT.toString(),
+                settings.pythonPath.toString(),
+                settings.predictScript.toString(),
                 imagePath.toString(),
-                PREDICTIONS_PATH.toString(),
+                settings.predictionsPath.toString(),
                 "--model",
                 "cpsam_v2",
                 "--gpu"
         );
-        processBuilder.directory(new File(PROJECT_DIRECTORY.toString()));
+        processBuilder.directory(new File(settings.projectDirectory.toString()));
         processBuilder.redirectErrorStream(true);
 
         // Request NVIDIA PRIME offload when ImageJ itself is running on the
@@ -161,8 +173,8 @@ public class Run_AI_Detection implements PlugIn {
                     + ".\n" + output.toString().trim()
             );
         }
-        if (!Files.isRegularFile(PREDICTIONS_PATH)) {
-            throw new Exception("Cellpose finished without creating " + PREDICTIONS_PATH);
+        if (!Files.isRegularFile(settings.predictionsPath)) {
+            throw new Exception("Cellpose finished without creating " + settings.predictionsPath);
         }
 
         return output.toString().trim();

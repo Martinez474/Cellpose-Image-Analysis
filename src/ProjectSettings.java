@@ -46,14 +46,23 @@ final class ProjectSettings {
         }
         if (project == null) {
             throw new IllegalStateException(
-                    "Could not find the Cellpose project. Put cellpose-config.json "
-                    + "next to the project or open ImageJ from the project directory."
+                    "Could not find the Cellpose project automatically."
             );
         }
 
+        return fromProject(project, config);
+    }
+
+    static ProjectSettings fromProject(Path projectDirectory) {
+        return fromProject(projectDirectory, readConfig(projectDirectory.resolve("cellpose-config.json")));
+    }
+
+    private static ProjectSettings fromProject(Path project, JsonObject config) {
+        project = project.toAbsolutePath().normalize();
         if (config == null) {
             config = readConfig(project.resolve("cellpose-config.json"));
         }
+
         String pythonDefault = isWindows()
                 ? ".venv/Scripts/python.exe" : ".venv/bin/python";
         Path python = resolve(project, value(config, "pythonPath", pythonDefault));
