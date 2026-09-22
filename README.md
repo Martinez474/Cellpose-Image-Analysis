@@ -84,6 +84,24 @@ For a custom layout, copy `cellpose-config.example.json` to
 configuration file's directory; absolute paths are also allowed. The
 configuration file is ignored by Git so machine-specific paths stay local.
 
+## Experimental ellipse detector
+
+`predict_ellipse.py` is a simple OpenCV baseline separate from Cellpose. It
+thresholds the image, fits ellipses to contours, and writes the same
+`predictions`/`polygon` JSON structure used by the ROI importer. Try it from
+the project directory with:
+
+```bash
+python predict_ellipse.py image.jpg ellipse_predictions.json \
+  --min-area 40 --min-axis-ratio 0.20 --max-fit-error 0.20
+```
+
+The thresholds are intentionally command-line options so they can be tuned for
+different images. In ImageJ, compile and run
+`src/Run_AI_DetectionEllipse.java`; it uses the ellipse detector and loads its
+results through the existing Gson/ROI workflow. Results are written to
+`ellipse_predictions.json`, leaving the Cellpose `predictions.json` untouched.
+
 ## Predict one image
 
 `predict.py` provides the Python-to-Java boundary:
