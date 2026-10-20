@@ -1,0 +1,19 @@
+direction: down
+
+settings: ProjectSettings
+python: Python executable
+working: Project working directory
+cellpose: predict.py
+ellipse: predict_ellipse.py
+schema: Prediction JSON schema
+loader: JsonLoader
+creator: RoiCreator
+manager: ImageJ RoiManager
+
+settings -> python
+settings -> working
+python -> cellpose
+python -> ellipse
+cellpose -> schema
+ellipse -> schema
+schema -> loader -> creator -> manager

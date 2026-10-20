@@ -1,0 +1,15 @@
+direction: right
+
+image: Saved micrograph open in ImageJ
+plugin: Run_AI_Detection.java
+settings: ProjectSettings
+python: .venv Python
+predict: predict.py
+model: Cellpose SAM model
+json: predictions.json
+loader: JsonLoader (Gson)
+creator: RoiCreator
+roi: ImageJ PolygonRoi objects
+manager: RoiManager / Show All
+
+image -> plugin -> settings -> python -> predict -> model -> json -> loader -> creator -> roi -> manager

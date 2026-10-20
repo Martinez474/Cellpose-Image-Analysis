@@ -1,4 +1,9 @@
-"""Small from-scratch segmentation model and pseudo-label preparation."""
+"""Small from-scratch segmentation model and pseudo-label preparation.
+
+This experimental baseline remains separate from Cellpose fine-tuning. It
+derives binary masks from yellow annotations, trains a tiny PyTorch network,
+and converts predicted masks into polygon outlines.
+"""
 
 from __future__ import annotations
 
@@ -173,6 +178,8 @@ class TinySegmentationNet(nn.Module):
 
 
 class PreparedDataset(Dataset):
+    """Dataset that reads prepared RGB images and binary masks."""
+
     def __init__(self, directory: Path):
         self.images = sorted(directory.glob("*_img.png"))
         if not self.images:
@@ -212,6 +219,8 @@ def train_simple_model(epochs: int = 5) -> tuple[Path, list[dict[str, float]]]:
     loss_function = nn.BCEWithLogitsLoss(pos_weight=positive_weight)
     history: list[dict[str, float]] = []
 
+    # Keep the baseline loop intentionally simple so its loss and Dice history
+    # are easy to inspect while experimenting with the dataset.
     for epoch in range(epochs):
         model.train()
         total_loss = 0.0

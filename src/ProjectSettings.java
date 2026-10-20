@@ -15,13 +15,15 @@ final class ProjectSettings {
     final Path pythonPath;
     final Path predictScript;
     final Path predictionsPath;
+    final String cellposeModel;
 
     private ProjectSettings(Path projectDirectory, Path pythonPath,
-                            Path predictScript, Path predictionsPath) {
+                            Path predictScript, Path predictionsPath, String cellposeModel) {
         this.projectDirectory = projectDirectory;
         this.pythonPath = pythonPath;
         this.predictScript = predictScript;
         this.predictionsPath = predictionsPath;
+        this.cellposeModel = cellposeModel;
     }
 
     static ProjectSettings load() {
@@ -68,7 +70,13 @@ final class ProjectSettings {
         Path python = resolve(project, value(config, "pythonPath", pythonDefault));
         Path script = resolve(project, value(config, "predictScript", "predict.py"));
         Path predictions = resolve(project, value(config, "predictionsPath", "predictions.json"));
-        return new ProjectSettings(project, python, script, predictions);
+        String cellposeModel = value(config, "cellposeModel", "cpsam_v2");
+        Path modelPath = Paths.get(cellposeModel);
+        if (modelPath.isAbsolute()) cellposeModel = modelPath.toString();
+        else if (cellposeModel.contains("/") || cellposeModel.contains("\\")) {
+            cellposeModel = resolve(project, cellposeModel).toString();
+        }
+        return new ProjectSettings(project, python, script, predictions, cellposeModel);
     }
 
     private static Path findProject(List<Path> starts) {

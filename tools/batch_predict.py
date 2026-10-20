@@ -29,6 +29,7 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 
 
 def export_rois(predictions: list[dict[str, object]], output_path: Path) -> None:
+    """Convert polygon predictions into one ImageJ ROI archive."""
     rois = []
     for number, prediction in enumerate(predictions, start=1):
         points = prediction.get("polygon")
@@ -40,11 +41,14 @@ def export_rois(predictions: list[dict[str, object]], output_path: Path) -> None
 
 
 def main() -> int:
+    # Each input image receives independent outputs so one failure does not
+    # prevent the remaining images from being processed.
     parser = argparse.ArgumentParser()
     parser.add_argument("input_dir", type=Path)
     parser.add_argument("results_dir", type=Path)
     args = parser.parse_args()
 
+    # Ignore non-image files and subdirectories in the input directory.
     images = sorted(
         path for path in args.input_dir.iterdir()
         if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES

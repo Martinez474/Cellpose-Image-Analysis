@@ -121,7 +121,7 @@ public class Run_AI_Detection implements PlugIn {
                 imagePath.toString(),
                 settings.predictionsPath.toString(),
                 "--model",
-                "cpsam_v2",
+                settings.cellposeModel,
                 "--gpu"
         );
         processBuilder.directory(new File(settings.projectDirectory.toString()));

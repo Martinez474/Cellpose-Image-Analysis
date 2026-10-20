@@ -1,5 +1,6 @@
 {
   "projectDirectory": ".",
   "predictScript": "predict.py",
-  "predictionsPath": "predictions.json"
+  "predictionsPath": "predictions.json",
+  "cellposeModel": "cpsam_v2"
 }

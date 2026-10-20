@@ -1,0 +1,22 @@
+direction: right
+
+image: Saved micrograph open in ImageJ
+plugin: Run_AI_DetectionEllipse.java
+settings: ProjectSettings
+python: .venv Python
+predict: predict_ellipse.py
+preprocess: Grayscale + blur
+threshold: Bright/dark threshold masks
+contours: OpenCV contours
+fit: cv2.fitEllipse
+filters: Area, axis ratio, axis size, fit error
+accepted: Accepted ellipse polygons
+discarded: Rejected contours
+json: ellipse_predictions.json
+loader: JsonLoader + RoiCreator
+manager: RoiManager / Show All
+
+image -> plugin -> settings -> python -> predict -> preprocess -> threshold -> contours -> fit -> filters
+filters -> accepted: accepted
+filters -> discarded: rejected
+accepted -> json -> loader -> manager

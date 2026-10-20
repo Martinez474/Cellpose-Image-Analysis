@@ -14,6 +14,9 @@ an ImageJ `PolygonRoi`, adds the ROIs to ROI Manager, and displays them over the
 image. The dataset tool in `tools/` implements the validation and cropping
 portions of steps 1–3.
 
+See [docs/diagrams.md](docs/diagrams.md) for Mermaid and D2 diagrams of the
+Cellpose and ellipse-detection pipelines.
+
 Before running the ImageJ plugin, the current image must be backed by a saved
 file. The plugin uses that file path as the input to `predict.py`; this guarantees
 that prediction coordinates correspond to the displayed image. Compile and run
@@ -83,6 +86,109 @@ For a custom layout, copy `cellpose-config.example.json` to
 `cellpose-config.json` and edit its paths. Relative paths are resolved from the
 configuration file's directory; absolute paths are also allowed. The
 configuration file is ignored by Git so machine-specific paths stay local.
+Set `cellposeModel` to a fine-tuned Cellpose model path when you want the
+ImageJ Cellpose plugin to use it instead of `cpsam_v2`.
+
+## Human masks and fine-tuning preparation
+
+The human `Output Micrographs` use yellow outlines. The preparation utility
+extracts those closed outlines, assigns each connected cell a unique integer
+label, and pairs the result with its original image:
+
+```bash
+python tools/prepare_finetune_masks.py \
+  --input-dir "../Input Micrographs" \
+  --annotation-dir "../Output Micrographs" \
+  --output-dir cellpose_finetune
+```
+
+It writes a source-level manifest and masks under `cellpose_finetune/source_masks`.
+Pairs with mismatched dimensions are excluded for review. Create identical
+image/mask tiles with GDAL using:
+
+```bash
+tools/tile_cellpose_dataset_gdal.sh \
+  cellpose_finetune/source_manifest.tsv \
+  cellpose_finetune/tiles_v2 256 16
+```
+
+The last two arguments are tile size and overlap in pixels. This uses
+`gdal_translate`, not `gdaldem`: `gdaldem` is for terrain analysis. Splitting
+is performed before tiling so crops from one original image cannot leak between
+training, validation, and test sets.
+
+### One-cell-per-sample crops
+
+To create a dataset where every sample contains one human-annotated cell and
+one matching mask, use:
+
+```bash
+python tools/prepare_cell_crops.py \
+  --input-dir "../Input Micrographs" \
+  --annotation-dir "../Output Micrographs" \
+  --output-dir cellpose_cell_crops \
+  --padding 8 \
+  --crop-size 0
+```
+
+Each split contains matching files such as:
+
+```text
+sample_cell_0001_img.png
+sample_cell_0001_masks.tif
+```
+
+The mask contains only that cell, with foreground value `1` and background
+value `0`. `--crop-size 0` creates a tight square around each cell; increase
+`--padding` for more surrounding context. The split is assigned by original
+source image before individual cells are extracted.
+
+To tune yellow-outline extraction, adjust the mask command without changing
+the source code. For example, a stricter color selection is:
+
+```bash
+python tools/prepare_finetune_masks.py \
+  --input-dir "../Input Micrographs" \
+  --annotation-dir "../Output Micrographs" \
+  --output-dir cellpose_finetune_tight \
+  --yellow-saturation-min 140 \
+  --yellow-value-min 120 \
+  --yellow-close-size 3 \
+  --minimum-area 80
+```
+
+The hue range is OpenCV's `0`–`179` scale. Increase
+`--yellow-saturation-min` to reject more background colors; increase
+`--yellow-close-size` only when outlines have small gaps. Use a new output
+directory for each experiment so masks can be compared.
+
+## Cellpose fine-tuning pilot
+
+After reviewing the masks and tiles, use the fine-tuning script. A one-tile,
+one-epoch run is useful for checking that training works and measuring speed,
+but it will overfit and is not a meaningful model-quality test:
+
+```bash
+python tools/finetune_cellpose.py \
+  --dataset cellpose_finetune/tiles_v2 \
+  --output models/cellpose_pilot \
+  --epochs 1 \
+  --max-train-tiles 1 \
+  --max-validation-tiles 1
+```
+
+For a real experiment, increase the epoch count and remove the tile limits:
+
+```bash
+python tools/finetune_cellpose.py \
+  --dataset cellpose_finetune/tiles_v2 \
+  --output models/cellpose_finetuned \
+  --epochs 100
+```
+
+Training time depends on the GPU, tile count, and epochs. The pilot gives the
+best estimate for the full run: approximately multiply its time by the number
+of training tiles and by the full epoch count, allowing for validation overhead.
 
 ## Experimental ellipse detector
 

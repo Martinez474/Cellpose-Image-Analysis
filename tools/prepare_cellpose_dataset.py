@@ -126,6 +126,7 @@ def validate_no_cross_split_duplicates(samples: Iterable[Sample]) -> None:
 
 
 def load_pair(sample: Sample) -> tuple[Image.Image, np.ndarray]:
+    """Load one RGB image and its two-dimensional instance mask."""
     with Image.open(sample.image_path) as source_image:
         image = source_image.copy()
     with Image.open(sample.mask_path) as source_mask:
@@ -181,6 +182,7 @@ def relabel_mask(mask: np.ndarray) -> np.ndarray:
 
 
 def border_object_count(mask: np.ndarray) -> int:
+    """Count labeled objects touching a crop edge for quality reporting."""
     border_labels = np.unique(
         np.concatenate((mask[0, :], mask[-1, :], mask[:, 0], mask[:, -1]))
     )
@@ -190,6 +192,7 @@ def border_object_count(mask: np.ndarray) -> int:
 def crop_sample(
     sample: Sample, image: Image.Image, mask: np.ndarray, tile_size: int
 ) -> Iterable[tuple[Image.Image, np.ndarray, int, int]]:
+    """Yield overlapping image/mask crops for one source sample."""
     width, height = image.size
     if width < tile_size or height < tile_size:
         raise DatasetError(
@@ -206,6 +209,7 @@ def crop_sample(
 
 
 def prepare_dataset(manifest: Path, output: Path, tile_size: int = 256) -> int:
+    """Validate the manifest and create a split-preserving tile dataset."""
     if tile_size <= 0:
         raise DatasetError("tile_size must be positive.")
     if output.exists() and any(output.iterdir()):

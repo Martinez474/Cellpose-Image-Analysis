@@ -6,7 +6,12 @@ __pycache__/
 /prepared_dataset/
 /toy_training/
 /simple_dataset/
+/cellpose_finetune/
+/cellpose_cell_crops/
 /models/
+/trainedModels/
 /trained_model.txt
+/*_predictions.json
+/*predictions.json
 cellpose-config.json
 .ipynb_checkpoints/
